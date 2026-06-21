@@ -61,6 +61,13 @@ export const api = {
     }),
   patchContent: (id: string, body: PatchContentInput) =>
     apiFetch<ContentItemDTO>(`/content/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
+  runAutopilot: () =>
+    apiFetch<{
+      candidatos: number;
+      aprovados: number;
+      agendados: number;
+      ignorados: { id: string; reason: string }[];
+    }>('/content/autopilot', { method: 'POST', body: JSON.stringify({}) }),
   scheduleContent: (id: string, body: ScheduleContentInput) =>
     apiFetch<ContentItemDTO>(`/content/${id}/schedule`, {
       method: 'POST',

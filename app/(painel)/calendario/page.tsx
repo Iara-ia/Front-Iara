@@ -15,6 +15,24 @@ export default function CalendarioPage() {
   const [items, setItems] = useState<ContentItemDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [running, setRunning] = useState(false);
+  const [autoMsg, setAutoMsg] = useState<string | null>(null);
+
+  async function runAuto() {
+    setRunning(true);
+    setAutoMsg(null);
+    try {
+      const r = await api.runAutopilot();
+      setAutoMsg(
+        `Piloto automático: ${r.aprovados} aprovados e agendados, ${r.ignorados.length} retidos pelos gates.`,
+      );
+      await load();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setRunning(false);
+    }
+  }
 
   async function load() {
     setError(null);
@@ -48,6 +66,21 @@ export default function CalendarioPage() {
         subtitle="Agende os aprovados — a Isabella publica sozinha na hora marcada."
       />
       {error && <p className="mb-4 rounded-md bg-red-50 px-4 py-2 text-sm text-red-700">{error}</p>}
+      <div className="mb-4 flex items-center gap-3">
+        <button
+          onClick={runAuto}
+          disabled={running}
+          className="rounded-md bg-terracota px-4 py-2 text-sm text-paper font-medium hover:bg-terracota-dark disabled:opacity-60"
+        >
+          {running ? 'Rodando…' : '⚡ Rodar piloto automático'}
+        </button>
+        <span className="text-xs text-ink/50">
+          Aprova os que passam nos gates e agenda 1/dia. O resto fica para revisão.
+        </span>
+      </div>
+      {autoMsg && (
+        <p className="mb-4 rounded-md bg-oliva/15 px-4 py-2 text-sm text-oliva-dark">{autoMsg}</p>
+      )}
       {loading ? (
         <div className="h-48 animate-pulse rounded-md border border-nude bg-nude-light/40" />
       ) : (
