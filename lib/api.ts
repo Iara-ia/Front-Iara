@@ -9,6 +9,8 @@ import type {
   UpdatePersonaInput,
   GenerateContentInput,
   PatchContentInput,
+  ScheduleContentInput,
+  SetAffiliateLinksInput,
   ConnectSocialInput,
 } from '@iara/contracts';
 
@@ -58,6 +60,16 @@ export const api = {
     }),
   patchContent: (id: string, body: PatchContentInput) =>
     apiFetch<ContentItemDTO>(`/content/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
+  scheduleContent: (id: string, body: ScheduleContentInput) =>
+    apiFetch<ContentItemDTO>(`/content/${id}/schedule`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+  setAffiliateLinks: (id: string, body: SetAffiliateLinksInput) =>
+    apiFetch<ContentItemDTO>(`/content/${id}/affiliate-links`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
 
   listSocial: () => apiFetch<SocialAccountDTO[]>('/social-accounts'),
   connectSocial: (body: ConnectSocialInput) =>

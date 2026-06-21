@@ -8,7 +8,7 @@ const NAV = [
   { href: '/visao-geral', label: 'Visão Geral', icon: '▦' },
   { href: '/gerar', label: 'Gerar Conteúdo', icon: '✶' },
   { href: '/fila', label: 'Fila de Aprovação', icon: '☑' },
-  { href: '/calendario', label: 'Calendário', icon: '▤', soon: true },
+  { href: '/calendario', label: 'Calendário', icon: '▤' },
   { href: '/monetizacao', label: 'Monetização', icon: '◎', soon: true },
   { href: '/analytics', label: 'Analytics', icon: '◷', soon: true },
   { href: '/persona', label: 'Persona', icon: '☺' },

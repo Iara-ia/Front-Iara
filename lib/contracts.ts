@@ -241,3 +241,12 @@ export interface PatchContentInput {
   cta?: string | null;
   status?: ContentStatus;
 }
+
+export interface ScheduleContentInput {
+  scheduleAt: string; // ISO
+  platforms: SocialPlatform[];
+}
+
+export interface SetAffiliateLinksInput {
+  links: AffiliateLink[];
+}
