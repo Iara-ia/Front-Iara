@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { PageHeader } from '@/components/PageHeader';
 import { api } from '@/lib/api';
-import type { PersonaDTO } from '@iara/contracts';
+import type { PersonaDTO, NicheCatalog } from '@iara/contracts';
 
 // Tela 2 — Configurar Persona (A3). Salva via PUT /personas/:id; refs via POST /personas/:id/refs.
 export default function PersonaPage() {
@@ -16,7 +16,9 @@ export default function PersonaPage() {
   // campos editáveis
   const [name, setName] = useState('');
   const [bio, setBio] = useState('');
-  const [niches, setNiches] = useState('');
+  const [selectedNiches, setSelectedNiches] = useState<string[]>([]);
+  const [catalog, setCatalog] = useState<NicheCatalog | null>(null);
+  const [customNiche, setCustomNiche] = useState('');
   const [tom, setTom] = useState('');
   const [refUrl, setRefUrl] = useState('');
 
@@ -30,7 +32,7 @@ export default function PersonaPage() {
       if (p) {
         setName(p.name);
         setBio(p.bio ?? '');
-        setNiches(p.niches.join(', '));
+        setSelectedNiches(p.niches);
         setTom(p.personality?.tom ?? '');
       }
     } catch (e) {
@@ -42,6 +44,7 @@ export default function PersonaPage() {
 
   useEffect(() => {
     load();
+    api.listNiches().then(setCatalog).catch(() => {});
   }, []);
 
   async function save() {
@@ -53,7 +56,7 @@ export default function PersonaPage() {
       const updated = await api.updatePersona(persona.id, {
         name,
         bio,
-        niches: niches.split(',').map((s) => s.trim()).filter(Boolean),
+        niches: selectedNiches,
         personality: {
           ...persona.personality,
           tom,
@@ -86,6 +89,27 @@ export default function PersonaPage() {
     }
   }
 
+  function toggleNiche(slug: string) {
+    setSelectedNiches((cur) =>
+      cur.includes(slug) ? cur.filter((s) => s !== slug) : [...cur, slug],
+    );
+  }
+  function slugifyNiche(s: string) {
+    return s
+      .normalize('NFD')
+      .replace(/\p{Diacritic}/gu, '')
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+  function addCustomNiche() {
+    const slug = slugifyNiche(customNiche);
+    if (!slug) return;
+    setSelectedNiches((cur) => (cur.includes(slug) ? cur : [...cur, slug]));
+    setCustomNiche('');
+  }
+
   if (loading) return <Skeleton />;
   if (!persona)
     return (
@@ -113,7 +137,14 @@ export default function PersonaPage() {
       <div className="rounded-md border border-nude bg-white p-6 max-w-2xl space-y-4">
         <Input label="Nome" value={name} onChange={setName} />
         <Textarea label="Bio" value={bio} onChange={setBio} />
-        <Input label="Nichos (separados por vírgula)" value={niches} onChange={setNiches} />
+        <NicheLeque
+          catalog={catalog}
+          selected={selectedNiches}
+          onToggle={toggleNiche}
+          custom={customNiche}
+          onCustom={setCustomNiche}
+          onAddCustom={addCustomNiche}
+        />
         <Input label="Tom" value={tom} onChange={setTom} />
 
         <div>
@@ -201,6 +232,106 @@ function Input({
         onChange={(e) => onChange(e.target.value)}
         className="w-full rounded-md border border-nude px-3 py-2 text-sm"
       />
+    </div>
+  );
+}
+
+function NicheLeque({
+  catalog,
+  selected,
+  onToggle,
+  custom,
+  onCustom,
+  onAddCustom,
+}: {
+  catalog: NicheCatalog | null;
+  selected: string[];
+  onToggle: (slug: string) => void;
+  custom: string;
+  onCustom: (v: string) => void;
+  onAddCustom: () => void;
+}) {
+  const customSelected = catalog
+    ? selected.filter((s) => !catalog.all.some((n) => n.slug === s))
+    : [];
+  return (
+    <div>
+      <p className="text-xs text-ink/50 mb-1">Nichos — o leque da persona</p>
+      <p className="text-[11px] text-ink/40 mb-2">
+        Escolha os nichos que a Isabella vai abordar. Eles guiam o mix de conteúdo e as hashtags.
+        Você também pode adicionar nichos próprios.
+      </p>
+      {!catalog ? (
+        <p className="text-xs text-ink/40">Carregando leque…</p>
+      ) : (
+        <div className="space-y-3">
+          {catalog.groups.map((g) => (
+            <div key={g.category}>
+              <p className="text-[10px] uppercase tracking-wide text-ink/40 mb-1">{g.category}</p>
+              <div className="flex flex-wrap gap-1.5">
+                {g.niches.map((n) => {
+                  const on = selected.includes(n.slug);
+                  return (
+                    <button
+                      key={n.slug}
+                      type="button"
+                      onClick={() => onToggle(n.slug)}
+                      title={n.angle}
+                      className={[
+                        'rounded-full px-3 py-1 text-xs border transition',
+                        on
+                          ? 'bg-terracota text-paper border-terracota'
+                          : 'bg-white text-ink border-nude hover:bg-nude/40',
+                      ].join(' ')}
+                    >
+                      {n.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+          {customSelected.length > 0 && (
+            <div>
+              <p className="text-[10px] uppercase tracking-wide text-ink/40 mb-1">Personalizados</p>
+              <div className="flex flex-wrap gap-1.5">
+                {customSelected.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => onToggle(s)}
+                    className="rounded-full px-3 py-1 text-xs bg-oliva text-paper border border-oliva"
+                  >
+                    {s} ✕
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          <div className="flex gap-2 pt-1">
+            <input
+              value={custom}
+              onChange={(e) => onCustom(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  onAddCustom();
+                }
+              }}
+              placeholder="Adicionar nicho próprio…"
+              className="flex-1 rounded-md border border-nude px-3 py-2 text-sm"
+            />
+            <button
+              type="button"
+              onClick={onAddCustom}
+              className="rounded-md border border-nude px-4 py-2 text-sm hover:bg-nude/40"
+            >
+              Adicionar
+            </button>
+          </div>
+          <p className="text-[11px] text-ink/40">{selected.length} nicho(s) selecionado(s)</p>
+        </div>
+      )}
     </div>
   );
 }

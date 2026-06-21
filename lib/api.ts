@@ -5,6 +5,7 @@ import type {
   ContentItemDTO,
   SocialAccountDTO,
   MeResponse,
+  NicheCatalog,
   UpdatePersonaInput,
   GenerateContentInput,
   PatchContentInput,
@@ -35,6 +36,8 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
 // ---- Helpers tipados por domínio ----
 export const api = {
   me: () => apiFetch<MeResponse>('/me'),
+
+  listNiches: () => apiFetch<NicheCatalog>('/niches'),
 
   listPersonas: () => apiFetch<PersonaDTO[]>('/personas'),
   getPersona: (id: string) => apiFetch<PersonaDTO>(`/personas/${id}`),

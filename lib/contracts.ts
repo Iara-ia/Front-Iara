@@ -180,6 +180,19 @@ export interface MeResponse {
   name: string | null;
 }
 
+// Catálogo de nichos (o "leque" configurável) — resposta de GET /niches.
+export interface NicheCatalogItem {
+  slug: string;
+  label: string;
+  category: string;
+  hashtags: string[];
+  angle: string;
+}
+export interface NicheCatalog {
+  all: NicheCatalogItem[];
+  groups: { category: string; niches: NicheCatalogItem[] }[];
+}
+
 // ---------------------- ENVELOPE DE RESPOSTA ----------------------
 
 export interface ApiOk<T> {
