@@ -6,6 +6,7 @@ import type {
   SocialAccountDTO,
   MeResponse,
   NicheCatalog,
+  AnalyticsOverviewDTO,
   UpdatePersonaInput,
   GenerateContentInput,
   PatchContentInput,
@@ -79,7 +80,7 @@ export const api = {
     }),
 
   analyticsOverview: () =>
-    apiFetch<{ naFila: number; agendados: number; contasConectadas: number }>(
-      '/analytics/overview',
-    ),
+    apiFetch<
+      AnalyticsOverviewDTO & { naFila: number; agendados: number; contasConectadas: number }
+    >('/analytics/overview'),
 };

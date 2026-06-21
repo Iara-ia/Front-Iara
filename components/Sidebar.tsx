@@ -4,13 +4,13 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 // Navegação do painel — espelha o sidebar do IARA_Painel_Mockup.html.
-const NAV = [
+const NAV: { href: string; label: string; icon: string; soon?: boolean }[] = [
   { href: '/visao-geral', label: 'Visão Geral', icon: '▦' },
   { href: '/gerar', label: 'Gerar Conteúdo', icon: '✶' },
   { href: '/fila', label: 'Fila de Aprovação', icon: '☑' },
   { href: '/calendario', label: 'Calendário', icon: '▤' },
-  { href: '/monetizacao', label: 'Monetização', icon: '◎', soon: true },
-  { href: '/analytics', label: 'Analytics', icon: '◷', soon: true },
+  { href: '/monetizacao', label: 'Monetização', icon: '◎' },
+  { href: '/analytics', label: 'Analytics', icon: '◷' },
   { href: '/persona', label: 'Persona', icon: '☺' },
 ];
 
