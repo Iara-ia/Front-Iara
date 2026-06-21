@@ -7,6 +7,8 @@ import type {
   MeResponse,
   NicheCatalog,
   AnalyticsOverviewDTO,
+  InteractionDTO,
+  ReceiveInteractionInput,
   UpdatePersonaInput,
   GenerateContentInput,
   PatchContentInput,
@@ -78,6 +80,10 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(body),
     }),
+
+  listInteractions: () => apiFetch<InteractionDTO[]>('/interactions'),
+  receiveInteraction: (body: ReceiveInteractionInput) =>
+    apiFetch<InteractionDTO>('/interactions', { method: 'POST', body: JSON.stringify(body) }),
 
   listSocial: () => apiFetch<SocialAccountDTO[]>('/social-accounts'),
   connectSocial: (body: ConnectSocialInput) =>

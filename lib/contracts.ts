@@ -250,3 +250,22 @@ export interface ScheduleContentInput {
 export interface SetAffiliateLinksInput {
   links: AffiliateLink[];
 }
+
+export interface InteractionDTO {
+  id: string;
+  personaId: string;
+  platform: string;
+  externalId: string;
+  kind: string; // duvida | elogio | e_ia | spam | parceria
+  inboundText: string;
+  replyDraft: string | null;
+  status: string; // RECEIVED | CLASSIFIED | REPLY_DRAFTED | ANSWERED | ROUTED
+  createdAt: string;
+}
+
+export interface ReceiveInteractionInput {
+  personaId: string;
+  platform: SocialPlatform;
+  externalId: string;
+  text: string;
+}

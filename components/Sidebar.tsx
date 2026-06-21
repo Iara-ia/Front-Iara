@@ -9,6 +9,7 @@ const NAV: { href: string; label: string; icon: string; soon?: boolean }[] = [
   { href: '/gerar', label: 'Gerar Conteúdo', icon: '✶' },
   { href: '/fila', label: 'Fila de Aprovação', icon: '☑' },
   { href: '/calendario', label: 'Calendário', icon: '▤' },
+  { href: '/engajamento', label: 'Engajamento', icon: '✉' },
   { href: '/monetizacao', label: 'Monetização', icon: '◎' },
   { href: '/analytics', label: 'Analytics', icon: '◷' },
   { href: '/persona', label: 'Persona', icon: '☺' },
