@@ -9,6 +9,7 @@ import type {
   AnalyticsOverviewDTO,
   InteractionDTO,
   ReceiveInteractionInput,
+  CreatePersonaInput,
   UpdatePersonaInput,
   GenerateContentInput,
   PatchContentInput,
@@ -45,6 +46,8 @@ export const api = {
   listNiches: () => apiFetch<NicheCatalog>('/niches'),
 
   listPersonas: () => apiFetch<PersonaDTO[]>('/personas'),
+  createPersona: (body: CreatePersonaInput) =>
+    apiFetch<PersonaDTO>('/personas', { method: 'POST', body: JSON.stringify(body) }),
   getPersona: (id: string) => apiFetch<PersonaDTO>(`/personas/${id}`),
   updatePersona: (id: string, body: UpdatePersonaInput) =>
     apiFetch<PersonaDTO>(`/personas/${id}`, { method: 'PUT', body: JSON.stringify(body) }),

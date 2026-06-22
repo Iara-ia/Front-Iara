@@ -8,6 +8,8 @@ import type { PersonaDTO, NicheCatalog } from '@iara/contracts';
 // Tela 2 — Configurar Persona (A3). Salva via PUT /personas/:id; refs via POST /personas/:id/refs.
 export default function PersonaPage() {
   const [persona, setPersona] = useState<PersonaDTO | null>(null);
+  const [personas, setPersonas] = useState<PersonaDTO[]>([]);
+  const [newName, setNewName] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
@@ -22,12 +24,13 @@ export default function PersonaPage() {
   const [tom, setTom] = useState('');
   const [refUrl, setRefUrl] = useState('');
 
-  async function load() {
+  async function load(selectId?: string) {
     setLoading(true);
     setError(null);
     try {
       const list = await api.listPersonas();
-      const p = list[0] ?? null;
+      setPersonas(list);
+      const p = (selectId ? list.find((x) => x.id === selectId) : null) ?? list[0] ?? null;
       setPersona(p);
       if (p) {
         setName(p.name);
@@ -89,6 +92,22 @@ export default function PersonaPage() {
     }
   }
 
+  async function criarPersona() {
+    if (!newName.trim()) return;
+    setSaving(true);
+    setError(null);
+    try {
+      const nova = await api.createPersona({ name: newName.trim() });
+      setNewName('');
+      setMsg('Persona criada.');
+      await load(nova.id);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   function toggleNiche(slug: string) {
     setSelectedNiches((cur) =>
       cur.includes(slug) ? cur.filter((s) => s !== slug) : [...cur, slug],
@@ -133,6 +152,35 @@ export default function PersonaPage() {
 
       {error && <Banner kind="error">{error}</Banner>}
       {msg && <Banner kind="ok">{msg}</Banner>}
+
+      <div className="mb-4 flex flex-wrap items-center gap-2 max-w-2xl">
+        <label className="text-xs text-ink/50">Persona:</label>
+        <select
+          value={persona.id}
+          onChange={(e) => load(e.target.value)}
+          className="rounded-md border border-nude px-3 py-2 text-sm"
+        >
+          {personas.map((pp) => (
+            <option key={pp.id} value={pp.id}>
+              {pp.name}
+            </option>
+          ))}
+        </select>
+        <span className="mx-1 text-ink/30">|</span>
+        <input
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
+          placeholder="Nome da nova persona"
+          className="rounded-md border border-nude px-3 py-2 text-sm"
+        />
+        <button
+          onClick={criarPersona}
+          disabled={saving || !newName.trim()}
+          className="rounded-md border border-nude px-3 py-2 text-sm hover:bg-nude/40 disabled:opacity-60"
+        >
+          + Nova persona
+        </button>
+      </div>
 
       <div className="rounded-md border border-nude bg-white p-6 max-w-2xl space-y-4">
         <Input label="Nome" value={name} onChange={setName} />

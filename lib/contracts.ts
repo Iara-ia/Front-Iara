@@ -208,6 +208,15 @@ export type ApiResponse<T> = ApiOk<T> | ApiErr;
 // ---------------------- INPUTS (derivados dos schemas Zod do back) ----------------------
 // Espelham `z.infer<typeof XSchema>` do back. Mantidos como tipos puros (sem Zod no browser).
 
+export interface CreatePersonaInput {
+  name: string;
+  bio?: string;
+  niches?: string[];
+  language?: string;
+  systemPrompt?: string;
+  tom?: string;
+}
+
 export interface UpdatePersonaInput {
   name?: string;
   bio?: string | null;
