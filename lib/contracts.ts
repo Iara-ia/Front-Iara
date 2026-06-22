@@ -241,6 +241,7 @@ export interface GenerateContentInput {
   personaId: string;
   count?: number; // 1..7, default 7 no back
   pilares?: string[];
+  type?: 'POST' | 'REEL'; // POST (default) | REEL (vídeo+voz)
   affiliateLinks?: AffiliateLink[];
 }
 

@@ -9,6 +9,7 @@ import type { PersonaDTO, ContentItemDTO } from '@iara/contracts';
 export default function GerarPage() {
   const [persona, setPersona] = useState<PersonaDTO | null>(null);
   const [count, setCount] = useState(3);
+  const [type, setType] = useState<'POST' | 'REEL'>('POST');
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState<ContentItemDTO[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +27,7 @@ export default function GerarPage() {
     setError(null);
     setResult(null);
     try {
-      const res = await api.generate({ personaId: persona.id, count });
+      const res = await api.generate({ personaId: persona.id, count, type });
       setResult(res.items);
     } catch (e) {
       setError((e as Error).message);
@@ -51,6 +52,23 @@ export default function GerarPage() {
           Persona:{' '}
           <strong>{persona ? persona.name : '— (rode o seed)'}</strong>
         </p>
+        <label className="block text-sm font-medium mb-2">Formato</label>
+        <div className="mb-4 inline-flex rounded-md border border-nude overflow-hidden">
+          {(['POST', 'REEL'] as const).map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setType(t)}
+              className={[
+                'px-4 py-2 text-sm',
+                type === t ? 'bg-terracota text-paper' : 'bg-white text-ink/70 hover:bg-nude/40',
+              ].join(' ')}
+            >
+              {t === 'POST' ? '📷 Post' : '🎬 Reel (vídeo+voz)'}
+            </button>
+          ))}
+        </div>
+
         <label className="block text-sm font-medium mb-2">Quantidade (1–7)</label>
         <input
           type="number"
