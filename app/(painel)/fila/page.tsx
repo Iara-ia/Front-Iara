@@ -74,7 +74,7 @@ export default function FilaPage() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [preview, setPreview] = useState<ContentItemDTO | null>(null);
+  const [preview, setPreview] = useState<{ list: ContentItemDTO[]; index: number } | null>(null);
 
   const sensors = useSensors(
     // activationConstraint evita conflito com cliques nos botões/textarea do card.
@@ -219,7 +219,7 @@ export default function FilaPage() {
                 activeItem={activeItem}
                 onMove={move}
                 onSaveCaption={saveCaption}
-                onPreview={setPreview}
+                onPreview={(list, index) => setPreview({ list, index })}
               />
             ))}
           </div>
@@ -264,7 +264,13 @@ export default function FilaPage() {
         segurança ok.
       </p>
 
-      {preview && <ContentPreviewModal item={preview} onClose={() => setPreview(null)} />}
+      {preview && (
+        <ContentPreviewModal
+          list={preview.list}
+          index={preview.index}
+          onClose={() => setPreview(null)}
+        />
+      )}
     </>
   );
 }
@@ -282,7 +288,7 @@ function Column({
   activeItem: ContentItemDTO | null;
   onMove: (i: ContentItemDTO, s: string) => void;
   onSaveCaption: (i: ContentItemDTO, c: string) => void;
-  onPreview: (i: ContentItemDTO) => void;
+  onPreview: (list: ContentItemDTO[], index: number) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: col });
 
@@ -316,13 +322,13 @@ function Column({
       )}
       <div className="space-y-3">
         {items.length === 0 && <p className="text-xs text-ink/40">Sem itens.</p>}
-        {items.map((item) => (
+        {items.map((item, idx) => (
           <DraggableCard
             key={item.id}
             item={item}
             onMove={onMove}
             onSaveCaption={onSaveCaption}
-            onPreview={onPreview}
+            onPreview={() => onPreview(items, idx)}
           />
         ))}
       </div>
@@ -339,7 +345,7 @@ function DraggableCard({
   item: ContentItemDTO;
   onMove: (i: ContentItemDTO, s: string) => void;
   onSaveCaption: (i: ContentItemDTO, c: string) => void;
-  onPreview: (i: ContentItemDTO) => void;
+  onPreview: () => void;
 }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: item.id });
   return (
@@ -366,7 +372,7 @@ function Card({
   item: ContentItemDTO;
   onMove: (i: ContentItemDTO, s: string) => void;
   onSaveCaption: (i: ContentItemDTO, c: string) => void;
-  onPreview?: (i: ContentItemDTO) => void;
+  onPreview?: () => void;
   overlay?: boolean;
 }) {
   const [editing, setEditing] = useState(false);
@@ -386,7 +392,7 @@ function Card({
             src={item.assets[0].url}
             alt=""
             onPointerDown={stop}
-            onClick={() => onPreview?.(item)}
+            onClick={() => onPreview?.()}
             className="h-28 w-full rounded object-cover cursor-zoom-in"
           />
           {isReel(item) && (

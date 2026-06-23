@@ -33,7 +33,7 @@ export default function CalendarioPage() {
   const [error, setError] = useState<string | null>(null);
   const [running, setRunning] = useState(false);
   const [autoMsg, setAutoMsg] = useState<string | null>(null);
-  const [preview, setPreview] = useState<ContentItemDTO | null>(null);
+  const [preview, setPreview] = useState<{ list: ContentItemDTO[]; index: number } | null>(null);
 
   async function runAuto() {
     setRunning(true);
@@ -122,12 +122,12 @@ export default function CalendarioPage() {
               </p>
             ) : (
               <div className="grid gap-3 md:grid-cols-2">
-                {hoje.map((it) => (
+                {hoje.map((it, i) => (
                   <PostCard
                     key={it.id}
                     item={it}
                     tipo={it.status === 'PUBLICADO' ? 'publicado' : 'hoje'}
-                    onOpen={() => setPreview(it)}
+                    onOpen={() => setPreview({ list: hoje, index: i })}
                   />
                 ))}
               </div>
@@ -142,8 +142,13 @@ export default function CalendarioPage() {
               </p>
             ) : (
               <div className="grid gap-3 md:grid-cols-2">
-                {aprovados.map((it) => (
-                  <Agendador key={it.id} item={it} onDone={load} onOpen={() => setPreview(it)} />
+                {aprovados.map((it, i) => (
+                  <Agendador
+                    key={it.id}
+                    item={it}
+                    onDone={load}
+                    onOpen={() => setPreview({ list: aprovados, index: i })}
+                  />
                 ))}
               </div>
             )}
@@ -155,8 +160,13 @@ export default function CalendarioPage() {
               <p className="text-xs text-ink/40">Nada agendado além de hoje.</p>
             ) : (
               <div className="grid gap-3 md:grid-cols-2">
-                {proximos.map((it) => (
-                  <PostCard key={it.id} item={it} tipo="agendado" onOpen={() => setPreview(it)} />
+                {proximos.map((it, i) => (
+                  <PostCard
+                    key={it.id}
+                    item={it}
+                    tipo="agendado"
+                    onOpen={() => setPreview({ list: proximos, index: i })}
+                  />
                 ))}
               </div>
             )}
@@ -168,8 +178,13 @@ export default function CalendarioPage() {
               <p className="text-xs text-ink/40">Nada publicado ainda.</p>
             ) : (
               <div className="grid gap-3 md:grid-cols-2">
-                {publicados.slice(0, 12).map((it) => (
-                  <PostCard key={it.id} item={it} tipo="publicado" onOpen={() => setPreview(it)} />
+                {publicados.slice(0, 12).map((it, i, arr) => (
+                  <PostCard
+                    key={it.id}
+                    item={it}
+                    tipo="publicado"
+                    onOpen={() => setPreview({ list: arr, index: i })}
+                  />
                 ))}
               </div>
             )}
@@ -177,7 +192,13 @@ export default function CalendarioPage() {
         </div>
       )}
 
-      {preview && <ContentPreviewModal item={preview} onClose={() => setPreview(null)} />}
+      {preview && (
+        <ContentPreviewModal
+          list={preview.list}
+          index={preview.index}
+          onClose={() => setPreview(null)}
+        />
+      )}
     </>
   );
 }
