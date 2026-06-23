@@ -279,3 +279,33 @@ export interface ReceiveInteractionInput {
   externalId: string;
   text: string;
 }
+
+// ---------------------- BILLING (planos SaaS) ----------------------
+export interface PlanLimits {
+  personas: number;
+  postsPerMonth: number; // -1 = ilimitado
+  reels: boolean;
+  autoPublish: boolean;
+  whiteLabel: boolean;
+}
+export interface PlanDef {
+  tier: string;
+  label: string;
+  priceBRLMonthly: number;
+  highlights: string[];
+  limits: PlanLimits;
+}
+export interface BillingDTO {
+  plan: string;
+  current: PlanDef;
+  catalog: PlanDef[];
+  provider: string;
+}
+export interface CheckoutInput {
+  plan: 'FREE' | 'STARTER' | 'PRO' | 'SCALE';
+}
+export interface CheckoutResult {
+  url: string | null;
+  activated: boolean;
+  plan: string;
+}

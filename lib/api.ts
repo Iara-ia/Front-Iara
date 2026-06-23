@@ -9,6 +9,9 @@ import type {
   AnalyticsOverviewDTO,
   InteractionDTO,
   ReceiveInteractionInput,
+  BillingDTO,
+  CheckoutInput,
+  CheckoutResult,
   CreatePersonaInput,
   UpdatePersonaInput,
   GenerateContentInput,
@@ -87,6 +90,10 @@ export const api = {
   listInteractions: () => apiFetch<InteractionDTO[]>('/interactions'),
   receiveInteraction: (body: ReceiveInteractionInput) =>
     apiFetch<InteractionDTO>('/interactions', { method: 'POST', body: JSON.stringify(body) }),
+
+  getBilling: () => apiFetch<BillingDTO>('/billing'),
+  checkout: (body: CheckoutInput) =>
+    apiFetch<CheckoutResult>('/billing/checkout', { method: 'POST', body: JSON.stringify(body) }),
 
   listSocial: () => apiFetch<SocialAccountDTO[]>('/social-accounts'),
   connectSocial: (body: ConnectSocialInput) =>
