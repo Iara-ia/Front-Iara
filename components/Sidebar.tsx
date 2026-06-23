@@ -20,7 +20,7 @@ const NAV: { href: string; label: string; icon: string; soon?: boolean }[] = [
 export function Sidebar() {
   const pathname = usePathname();
   return (
-    <aside className="w-60 shrink-0 border-r border-nude bg-paper px-3 py-5 flex flex-col gap-1">
+    <aside className="w-60 shrink-0 border-r border-nude bg-paper/60 px-3 py-5 flex flex-col gap-1">
       <div className="px-3 pb-5">
         <span className="text-terracota font-bold tracking-widest">IARA</span>
         <p className="text-xs text-ink/50">Isabella Souza</p>
