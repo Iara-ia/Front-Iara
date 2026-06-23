@@ -4,7 +4,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { PageHeader } from '@/components/PageHeader';
 import { api } from '@/lib/api';
 import { useActivePersona } from '@/components/PersonaProvider';
-import { PLATFORMS, platformMeta } from '@/lib/platforms';
+import { ConnectAccountModal } from '@/components/ConnectAccountModal';
+import { PLATFORMS } from '@/lib/platforms';
 import type { SocialAccountDTO, MeResponse, SocialPlatform } from '@iara/contracts';
 
 // Tela 1 — Visão Geral. Tudo no contexto da PERSONA ATIVA (conta selecionada no topo).
@@ -13,6 +14,7 @@ export default function VisaoGeralPage() {
   const [me, setMe] = useState<MeResponse | null>(null);
   const [accounts, setAccounts] = useState<SocialAccountDTO[]>([]);
   const [overview, setOverview] = useState<{ naFila: number; agendados: number } | null>(null);
+  const [connecting, setConnecting] = useState<SocialPlatform | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -36,13 +38,11 @@ export default function VisaoGeralPage() {
     load();
   }, [load]);
 
-  async function connect(platform: SocialPlatform) {
-    if (!persona) return;
-    const sugestao = '@' + persona.name.toLowerCase().replace(/\s+/g, '');
-    const handle = window.prompt(`Handle de ${persona.name} na ${platformMeta(platform).label}`, sugestao);
-    if (!handle) return;
+  async function disconnect(acc: SocialAccountDTO) {
+    if (!window.confirm(`Desconectar ${acc.handle}? O token é revogado; nada é publicado por ela até reconectar.`))
+      return;
     try {
-      await api.connectSocial({ personaId: persona.id, platform, handle });
+      await api.disconnectSocial(acc.id);
       await load();
     } catch (e) {
       setError((e as Error).message);
@@ -87,7 +87,11 @@ export default function VisaoGeralPage() {
       </div>
 
       <div className="mt-6 rounded-md border border-nude bg-white p-6 max-w-2xl">
-        <h2 className="text-sm font-semibold mb-3">Redes de {persona.name}</h2>
+        <h2 className="text-sm font-semibold mb-1">Redes de {persona.name}</h2>
+        <div className="mb-3 rounded-md border border-oliva/30 bg-oliva/10 px-3 py-2 text-[12px] text-ink/70">
+          🔒 <strong>A IARA nunca pede nem armazena senhas.</strong> A conexão é pelo login oficial
+          de cada rede (OAuth); guardamos só um token de acesso revogável.
+        </div>
         <div className="space-y-2">
           {PLATFORMS.map((pl) => {
             const acc = connected(pl.key);
@@ -109,12 +113,23 @@ export default function VisaoGeralPage() {
                   {acc && <span className="text-ink/50 ml-1">{acc.handle}</span>}
                 </div>
                 {acc ? (
-                  <span className="text-xs rounded bg-oliva/15 text-oliva-dark px-2 py-1">
-                    {acc.status === 'CONNECTED' ? '✓ conectada' : acc.status}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="text-xs rounded bg-oliva/15 text-oliva-dark px-2 py-1"
+                      title="Conectada via login oficial — token guardado criptografado"
+                    >
+                      🔑 {acc.status === 'CONNECTED' ? 'conectada' : acc.status}
+                    </span>
+                    <button
+                      onClick={() => disconnect(acc)}
+                      className="text-xs text-ink/40 hover:text-red-600"
+                    >
+                      Desconectar
+                    </button>
+                  </div>
                 ) : (
                   <button
-                    onClick={() => connect(pl.key)}
+                    onClick={() => setConnecting(pl.key)}
                     className="text-xs rounded bg-terracota px-3 py-1 text-paper hover:bg-terracota-dark"
                   >
                     Conectar
@@ -126,9 +141,22 @@ export default function VisaoGeralPage() {
         </div>
         <p className="mt-3 text-[11px] text-ink/40">
           Conexão simulada (mock) no dev. O fluxo real via Ayrshare entra quando a chave existir —
-          mesma interface. Redes marcadas “mock” ligam o real numa fase seguinte.
+          mesma interface, sem mudar nada aqui.
         </p>
       </div>
+
+      {connecting && (
+        <ConnectAccountModal
+          personaId={persona.id}
+          personaName={persona.name}
+          platform={connecting}
+          onClose={() => setConnecting(null)}
+          onConnected={() => {
+            setConnecting(null);
+            load();
+          }}
+        />
+      )}
     </>
   );
 }

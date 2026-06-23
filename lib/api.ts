@@ -106,6 +106,8 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(body),
     }),
+  disconnectSocial: (id: string) =>
+    apiFetch<{ id: string }>(`/social-accounts/${id}`, { method: 'DELETE' }),
 
   analyticsOverview: (personaId?: string) =>
     apiFetch<
