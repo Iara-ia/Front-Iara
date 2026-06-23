@@ -24,6 +24,7 @@ export default function PersonaPage() {
   const [catalog, setCatalog] = useState<NicheCatalog | null>(null);
   const [customNiche, setCustomNiche] = useState('');
   const [tom, setTom] = useState('');
+  const [loraId, setLoraId] = useState('');
   const [refUrl, setRefUrl] = useState('');
 
   async function load(selectId?: string) {
@@ -43,6 +44,7 @@ export default function PersonaPage() {
         setBio(p.bio ?? '');
         setSelectedNiches(p.niches);
         setTom(p.personality?.tom ?? '');
+        setLoraId(p.visualProfile?.loraId ?? '');
       }
     } catch (e) {
       setError((e as Error).message);
@@ -69,6 +71,11 @@ export default function PersonaPage() {
         personality: {
           ...persona.personality,
           tom,
+        },
+        // mescla com o visualProfile atual (preserva faceRefs + paleta); grava o LoRA.
+        visualProfile: {
+          ...persona.visualProfile,
+          loraId: loraId.trim() || null,
         },
         aiDisclosure: true,
       });
@@ -214,6 +221,32 @@ export default function PersonaPage() {
               <span key={c} className="h-6 w-10 rounded" style={{ backgroundColor: c }} title={c} />
             ))}
           </div>
+        </div>
+
+        <div>
+          <p className="text-xs text-ink/50 mb-1">Modelo facial — LoRA (face-lock)</p>
+          <input
+            value={loraId}
+            onChange={(e) => setLoraId(e.target.value)}
+            placeholder="ex.: flux-lora-isabella-v1  (ou URL dos pesos)"
+            className="w-full rounded-md border border-nude px-3 py-2 text-sm font-mono"
+          />
+          <div className="mt-1.5 flex items-center gap-2">
+            {loraId.trim() ? (
+              <span className="rounded bg-oliva/15 px-2 py-0.5 text-[11px] text-oliva-dark">
+                ✓ rosto travado — geração usará o LoRA da Isabella
+              </span>
+            ) : (
+              <span className="rounded bg-golden/20 px-2 py-0.5 text-[11px] text-terracota-dark">
+                sem LoRA — gerador padrão (placeholder no dev)
+              </span>
+            )}
+          </div>
+          <p className="mt-1 text-[11px] text-ink/40">
+            Cole o ID/URL do LoRA treinado nas {refs.length} refs aprovadas. Vazio = sem rosto
+            travado. Ative o Flux real com <code>PROVIDER_IMAGE=flux</code> + chave. Passo a passo
+            em <code>docs/COMO_TREINAR_LORA.md</code>.
+          </p>
         </div>
 
         <label className="flex items-center gap-2 text-sm">
