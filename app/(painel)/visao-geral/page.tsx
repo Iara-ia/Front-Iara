@@ -6,7 +6,6 @@ import { api } from '@/lib/api';
 import { useActivePersona } from '@/components/PersonaProvider';
 import { ConnectAccountModal } from '@/components/ConnectAccountModal';
 import { PlatformIcon } from '@/components/PlatformIcon';
-import { SocialWatermark } from '@/components/SocialWatermark';
 import { PLATFORMS } from '@/lib/platforms';
 import type { SocialAccountDTO, MeResponse, SocialPlatform } from '@iara/contracts';
 
@@ -88,9 +87,8 @@ export default function VisaoGeralPage() {
         ))}
       </div>
 
-      <div className="mt-6 relative overflow-hidden rounded-md border border-nude bg-white p-6 max-w-2xl">
-        <SocialWatermark />
-        <div className="relative">
+      <div className="mt-6 rounded-md border border-nude bg-white/85 p-6 max-w-2xl">
+        <div>
         <h2 className="text-sm font-semibold mb-1">Redes de {persona.name}</h2>
         <div className="mb-3 rounded-md border border-oliva/30 bg-oliva/10 px-3 py-2 text-[12px] text-ink/70">
           🔒 <strong>A IARA nunca pede nem armazena senhas.</strong> A conexão é pelo login oficial
