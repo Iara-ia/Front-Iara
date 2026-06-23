@@ -18,6 +18,8 @@ import { KANBAN_COLUMNS, ContentStatus } from '@iara/contracts';
 import type { ContentItemDTO } from '@iara/contracts';
 import { api } from '@/lib/api';
 import { useActivePersona } from '@/components/PersonaProvider';
+import { ContentPreviewModal } from '@/components/ContentPreviewModal';
+import { isReel } from '@/components/PostThumb';
 
 const LABELS: Record<string, string> = {
   GERADO: 'Gerado',
@@ -72,6 +74,7 @@ export default function FilaPage() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [preview, setPreview] = useState<ContentItemDTO | null>(null);
 
   const sensors = useSensors(
     // activationConstraint evita conflito com cliques nos botões/textarea do card.
@@ -216,6 +219,7 @@ export default function FilaPage() {
                 activeItem={activeItem}
                 onMove={move}
                 onSaveCaption={saveCaption}
+                onPreview={setPreview}
               />
             ))}
           </div>
@@ -259,6 +263,8 @@ export default function FilaPage() {
         Mover para <strong>Aprovado</strong> grava quem aprovou e quando, e exige consistência +
         segurança ok.
       </p>
+
+      {preview && <ContentPreviewModal item={preview} onClose={() => setPreview(null)} />}
     </>
   );
 }
@@ -269,12 +275,14 @@ function Column({
   activeItem,
   onMove,
   onSaveCaption,
+  onPreview,
 }: {
   col: string;
   items: ContentItemDTO[];
   activeItem: ContentItemDTO | null;
   onMove: (i: ContentItemDTO, s: string) => void;
   onSaveCaption: (i: ContentItemDTO, c: string) => void;
+  onPreview: (i: ContentItemDTO) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: col });
 
@@ -314,6 +322,7 @@ function Column({
             item={item}
             onMove={onMove}
             onSaveCaption={onSaveCaption}
+            onPreview={onPreview}
           />
         ))}
       </div>
@@ -325,10 +334,12 @@ function DraggableCard({
   item,
   onMove,
   onSaveCaption,
+  onPreview,
 }: {
   item: ContentItemDTO;
   onMove: (i: ContentItemDTO, s: string) => void;
   onSaveCaption: (i: ContentItemDTO, c: string) => void;
+  onPreview: (i: ContentItemDTO) => void;
 }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: item.id });
   return (
@@ -340,7 +351,7 @@ function DraggableCard({
       {...attributes}
       {...listeners}
     >
-      <Card item={item} onMove={onMove} onSaveCaption={onSaveCaption} />
+      <Card item={item} onMove={onMove} onSaveCaption={onSaveCaption} onPreview={onPreview} />
     </div>
   );
 }
@@ -349,11 +360,13 @@ function Card({
   item,
   onMove,
   onSaveCaption,
+  onPreview,
   overlay,
 }: {
   item: ContentItemDTO;
   onMove: (i: ContentItemDTO, s: string) => void;
   onSaveCaption: (i: ContentItemDTO, c: string) => void;
+  onPreview?: (i: ContentItemDTO) => void;
   overlay?: boolean;
 }) {
   const [editing, setEditing] = useState(false);
@@ -366,9 +379,25 @@ function Card({
 
   return (
     <div className="rounded-md border border-nude bg-white p-3 text-xs space-y-2 cursor-grab active:cursor-grabbing">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
       {item.assets[0] && (
-        <img src={item.assets[0].url} alt="" className="h-28 w-full rounded object-cover" />
+        <div className="relative">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={item.assets[0].url}
+            alt=""
+            onPointerDown={stop}
+            onClick={() => onPreview?.(item)}
+            className="h-28 w-full rounded object-cover cursor-zoom-in"
+          />
+          {isReel(item) && (
+            <span className="absolute bottom-1 right-1 rounded bg-black/60 px-1 text-[9px] text-white">
+              ▶ Reel
+            </span>
+          )}
+          <span className="absolute left-1 top-1 rounded bg-black/45 px-1.5 py-0.5 text-[9px] text-white">
+            🔍 ampliar
+          </span>
+        </div>
       )}
       <div className="flex items-center gap-2 flex-wrap">
         {item.pilar && <Tag>{item.pilar}</Tag>}
