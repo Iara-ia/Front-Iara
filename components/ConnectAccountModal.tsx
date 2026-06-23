@@ -6,6 +6,7 @@
 import { useState } from 'react';
 import { api } from '@/lib/api';
 import { platformMeta } from '@/lib/platforms';
+import { PlatformIcon } from '@/components/PlatformIcon';
 import type { SocialPlatform } from '@iara/contracts';
 
 export function ConnectAccountModal({
@@ -50,8 +51,8 @@ export function ConnectAccountModal({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-nude-light text-lg">
-            {meta.icon}
+          <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-nude-light">
+            <PlatformIcon platform={platform} size={22} />
           </span>
           <div>
             <h3 className="font-semibold text-ink">Conectar {meta.label}</h3>

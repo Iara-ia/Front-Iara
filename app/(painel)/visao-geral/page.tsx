@@ -5,6 +5,8 @@ import { PageHeader } from '@/components/PageHeader';
 import { api } from '@/lib/api';
 import { useActivePersona } from '@/components/PersonaProvider';
 import { ConnectAccountModal } from '@/components/ConnectAccountModal';
+import { PlatformIcon } from '@/components/PlatformIcon';
+import { SocialWatermark } from '@/components/SocialWatermark';
 import { PLATFORMS } from '@/lib/platforms';
 import type { SocialAccountDTO, MeResponse, SocialPlatform } from '@iara/contracts';
 
@@ -86,7 +88,9 @@ export default function VisaoGeralPage() {
         ))}
       </div>
 
-      <div className="mt-6 rounded-md border border-nude bg-white p-6 max-w-2xl">
+      <div className="mt-6 relative overflow-hidden rounded-md border border-nude bg-white p-6 max-w-2xl">
+        <SocialWatermark />
+        <div className="relative">
         <h2 className="text-sm font-semibold mb-1">Redes de {persona.name}</h2>
         <div className="mb-3 rounded-md border border-oliva/30 bg-oliva/10 px-3 py-2 text-[12px] text-ink/70">
           🔒 <strong>A IARA nunca pede nem armazena senhas.</strong> A conexão é pelo login oficial
@@ -98,11 +102,11 @@ export default function VisaoGeralPage() {
             return (
               <div
                 key={pl.key}
-                className="flex items-center justify-between rounded-md border border-nude-light px-3 py-2"
+                className="flex items-center justify-between rounded-md border border-nude-light bg-white/80 px-3 py-2"
               >
-                <div className="text-sm flex items-center gap-2">
-                  <span className="inline-flex h-6 w-6 items-center justify-center rounded bg-nude-light text-ink/70">
-                    {pl.icon}
+                <div className="text-sm flex items-center gap-2.5">
+                  <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-nude-light/60">
+                    <PlatformIcon platform={pl.key} size={18} />
                   </span>
                   <span className="font-medium">{pl.label}</span>
                   {!pl.realReady && (
@@ -143,6 +147,7 @@ export default function VisaoGeralPage() {
           Conexão simulada (mock) no dev. O fluxo real via Ayrshare entra quando a chave existir —
           mesma interface, sem mudar nada aqui.
         </p>
+        </div>
       </div>
 
       {connecting && (
