@@ -3,11 +3,13 @@
 import { useEffect, useState } from 'react';
 import { PageHeader } from '@/components/PageHeader';
 import { api } from '@/lib/api';
+import { useActivePersona } from '@/components/PersonaProvider';
 import type { ContentItemDTO, AffiliateLink } from '@iara/contracts';
 
 // Sprint 3 — Monetização / Gestor de afiliados. Adiciona links (UTM/cupom) aos itens;
 // ter afiliado injeta #publi (Conar) automaticamente no back.
 export default function MonetizacaoPage() {
+  const { active: persona } = useActivePersona();
   const [items, setItems] = useState<ContentItemDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -15,9 +17,10 @@ export default function MonetizacaoPage() {
   async function load() {
     setError(null);
     try {
+      const pid = persona?.id;
       const [rev, aprov] = await Promise.all([
-        api.listContent('EM_REVISAO'),
-        api.listContent('APROVADO'),
+        api.listContent({ status: 'EM_REVISAO', personaId: pid }),
+        api.listContent({ status: 'APROVADO', personaId: pid }),
       ]);
       setItems([...rev, ...aprov]);
     } catch (e) {
@@ -28,7 +31,8 @@ export default function MonetizacaoPage() {
   }
   useEffect(() => {
     load();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [persona?.id]);
 
   return (
     <>

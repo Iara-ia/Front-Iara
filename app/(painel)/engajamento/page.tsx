@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react';
 import { PageHeader } from '@/components/PageHeader';
 import { api } from '@/lib/api';
+import { useActivePersona } from '@/components/PersonaProvider';
 import { SocialPlatform } from '@iara/contracts';
-import type { InteractionDTO, PersonaDTO } from '@iara/contracts';
+import type { InteractionDTO } from '@iara/contracts';
 
 // V1 — Engajamento. Lista interações e auto-respostas; permite simular um comentário/DM
 // (no real, vem por webhook das redes). spam/parceria são roteados; o resto é respondido.
@@ -17,7 +18,7 @@ const KIND_LABEL: Record<string, string> = {
 };
 
 export default function EngajamentoPage() {
-  const [persona, setPersona] = useState<PersonaDTO | null>(null);
+  const { active: persona } = useActivePersona();
   const [items, setItems] = useState<InteractionDTO[]>([]);
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
@@ -26,16 +27,16 @@ export default function EngajamentoPage() {
   async function load() {
     setError(null);
     try {
-      const [personas, inter] = await Promise.all([api.listPersonas(), api.listInteractions()]);
-      setPersona(personas[0] ?? null);
-      setItems(inter);
+      const inter = await api.listInteractions();
+      setItems(persona ? inter.filter((i) => i.personaId === persona.id) : inter);
     } catch (e) {
       setError((e as Error).message);
     }
   }
   useEffect(() => {
     load();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [persona?.id]);
 
   async function send() {
     if (!persona || !text.trim()) return;

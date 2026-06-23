@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 
 // Navegação do painel — espelha o sidebar do IARA_Painel_Mockup.html.
 const NAV: { href: string; label: string; icon: string; soon?: boolean }[] = [
+  { href: '/contas', label: 'Minhas Contas', icon: '◇' },
   { href: '/visao-geral', label: 'Visão Geral', icon: '▦' },
   { href: '/gerar', label: 'Gerar Conteúdo', icon: '✶' },
   { href: '/fila', label: 'Fila de Aprovação', icon: '☑' },

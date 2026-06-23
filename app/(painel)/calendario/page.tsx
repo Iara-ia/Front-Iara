@@ -3,15 +3,18 @@
 import { useEffect, useState } from 'react';
 import { PageHeader } from '@/components/PageHeader';
 import { api } from '@/lib/api';
+import { useActivePersona } from '@/components/PersonaProvider';
+import { PLATFORMS } from '@/lib/platforms';
 import { SocialPlatform } from '@iara/contracts';
 import type { ContentItemDTO } from '@iara/contracts';
 
 // Sprint 3 — Calendário/Agendar. Lista itens APROVADOS para agendar (data/hora + plataformas);
 // ao chegar a hora, o worker publica sozinho (status vai para PUBLICADO). Mostra também os
 // AGENDADOS e PUBLICADOS.
-const PLATAFORMAS: SocialPlatform[] = [SocialPlatform.INSTAGRAM, SocialPlatform.TIKTOK];
+const PLATAFORMAS: SocialPlatform[] = PLATFORMS.map((p) => p.key);
 
 export default function CalendarioPage() {
+  const { active: persona } = useActivePersona();
   const [items, setItems] = useState<ContentItemDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -37,10 +40,11 @@ export default function CalendarioPage() {
   async function load() {
     setError(null);
     try {
+      const pid = persona?.id;
       const [aprov, agend, pub] = await Promise.all([
-        api.listContent('APROVADO'),
-        api.listContent('AGENDADO'),
-        api.listContent('PUBLICADO'),
+        api.listContent({ status: 'APROVADO', personaId: pid }),
+        api.listContent({ status: 'AGENDADO', personaId: pid }),
+        api.listContent({ status: 'PUBLICADO', personaId: pid }),
       ]);
       setItems([...aprov, ...agend, ...pub]);
     } catch (e) {
@@ -53,7 +57,8 @@ export default function CalendarioPage() {
     load();
     const t = setInterval(load, 5000); // reflete a publicação automática
     return () => clearInterval(t);
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [persona?.id]);
 
   const aprovados = items.filter((i) => i.status === 'APROVADO');
   const agendados = items.filter((i) => i.status === 'AGENDADO');

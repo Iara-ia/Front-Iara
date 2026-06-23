@@ -60,8 +60,13 @@ export const api = {
       body: JSON.stringify({ urls }),
     }),
 
-  listContent: (status?: string) =>
-    apiFetch<ContentItemDTO[]>(`/content${status ? `?status=${status}` : ''}`),
+  listContent: (opts?: { status?: string; personaId?: string }) => {
+    const qs = new URLSearchParams();
+    if (opts?.status) qs.set('status', opts.status);
+    if (opts?.personaId) qs.set('personaId', opts.personaId);
+    const q = qs.toString();
+    return apiFetch<ContentItemDTO[]>(`/content${q ? `?${q}` : ''}`);
+  },
   generate: (body: GenerateContentInput) =>
     apiFetch<{ created: number; items: ContentItemDTO[] }>('/content/generate', {
       method: 'POST',
@@ -102,8 +107,8 @@ export const api = {
       body: JSON.stringify(body),
     }),
 
-  analyticsOverview: () =>
+  analyticsOverview: (personaId?: string) =>
     apiFetch<
       AnalyticsOverviewDTO & { naFila: number; agendados: number; contasConectadas: number }
-    >('/analytics/overview'),
+    >(`/analytics/overview${personaId ? `?personaId=${personaId}` : ''}`),
 };

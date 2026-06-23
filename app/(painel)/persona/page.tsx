@@ -3,10 +3,12 @@
 import { useEffect, useState } from 'react';
 import { PageHeader } from '@/components/PageHeader';
 import { api } from '@/lib/api';
+import { useActivePersona } from '@/components/PersonaProvider';
 import type { PersonaDTO, NicheCatalog } from '@iara/contracts';
 
 // Tela 2 — Configurar Persona (A3). Salva via PUT /personas/:id; refs via POST /personas/:id/refs.
 export default function PersonaPage() {
+  const { activeId, setActiveId, reload: reloadSwitcher } = useActivePersona();
   const [persona, setPersona] = useState<PersonaDTO | null>(null);
   const [personas, setPersonas] = useState<PersonaDTO[]>([]);
   const [newName, setNewName] = useState('');
@@ -30,7 +32,11 @@ export default function PersonaPage() {
     try {
       const list = await api.listPersonas();
       setPersonas(list);
-      const p = (selectId ? list.find((x) => x.id === selectId) : null) ?? list[0] ?? null;
+      const p =
+        (selectId ? list.find((x) => x.id === selectId) : null) ??
+        list.find((x) => x.id === activeId) ??
+        list[0] ??
+        null;
       setPersona(p);
       if (p) {
         setName(p.name);
@@ -67,6 +73,7 @@ export default function PersonaPage() {
         aiDisclosure: true,
       });
       setPersona(updated);
+      await reloadSwitcher(); // reflete nome/nichos no switcher e em Minhas Contas
       setMsg('Persona salva com sucesso.');
     } catch (e) {
       setError((e as Error).message);
@@ -100,6 +107,8 @@ export default function PersonaPage() {
       const nova = await api.createPersona({ name: newName.trim() });
       setNewName('');
       setMsg('Persona criada.');
+      setActiveId(nova.id); // já entra como conta ativa
+      await reloadSwitcher();
       await load(nova.id);
     } catch (e) {
       setError((e as Error).message);
@@ -157,7 +166,10 @@ export default function PersonaPage() {
         <label className="text-xs text-ink/50">Persona:</label>
         <select
           value={persona.id}
-          onChange={(e) => load(e.target.value)}
+          onChange={(e) => {
+            setActiveId(e.target.value);
+            load(e.target.value);
+          }}
           className="rounded-md border border-nude px-3 py-2 text-sm"
         >
           {personas.map((pp) => (

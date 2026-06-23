@@ -1,25 +1,19 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { PageHeader } from '@/components/PageHeader';
 import { api } from '@/lib/api';
-import type { PersonaDTO, ContentItemDTO } from '@iara/contracts';
+import { useActivePersona } from '@/components/PersonaProvider';
+import type { ContentItemDTO } from '@iara/contracts';
 
 // Tela 3 — Gerar Conteúdo (B1). Dispara lote (imagem+legenda) via POST /content/generate.
 export default function GerarPage() {
-  const [persona, setPersona] = useState<PersonaDTO | null>(null);
+  const { active: persona } = useActivePersona();
   const [count, setCount] = useState(3);
   const [type, setType] = useState<'POST' | 'REEL'>('POST');
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState<ContentItemDTO[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    api
-      .listPersonas()
-      .then((l) => setPersona(l[0] ?? null))
-      .catch((e) => setError((e as Error).message));
-  }, []);
 
   async function gerar() {
     if (!persona) return;

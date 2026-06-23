@@ -1,43 +1,45 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { PageHeader } from '@/components/PageHeader';
 import { api } from '@/lib/api';
-import type { PersonaDTO, SocialAccountDTO, MeResponse } from '@iara/contracts';
+import { useActivePersona } from '@/components/PersonaProvider';
+import { PLATFORMS, platformMeta } from '@/lib/platforms';
+import type { SocialAccountDTO, MeResponse, SocialPlatform } from '@iara/contracts';
 
-// Tela 1 — Visão Geral (A2/D1). Status real + conexão de contas sociais.
+// Tela 1 — Visão Geral. Tudo no contexto da PERSONA ATIVA (conta selecionada no topo).
 export default function VisaoGeralPage() {
+  const { active: persona } = useActivePersona();
   const [me, setMe] = useState<MeResponse | null>(null);
-  const [persona, setPersona] = useState<PersonaDTO | null>(null);
   const [accounts, setAccounts] = useState<SocialAccountDTO[]>([]);
   const [overview, setOverview] = useState<{ naFila: number; agendados: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function load() {
+  const load = useCallback(async () => {
+    if (!persona) return;
     setError(null);
     try {
-      const [meRes, personas, accs, ov] = await Promise.all([
+      const [meRes, accs, ov] = await Promise.all([
         api.me(),
-        api.listPersonas(),
         api.listSocial(),
-        api.analyticsOverview(),
+        api.analyticsOverview(persona.id),
       ]);
       setMe(meRes);
-      setPersona(personas[0] ?? null);
-      setAccounts(accs);
+      setAccounts(accs.filter((a) => a.personaId === persona.id)); // só as redes desta conta
       setOverview(ov);
     } catch (e) {
       setError((e as Error).message);
     }
-  }
+  }, [persona]);
 
   useEffect(() => {
     load();
-  }, []);
+  }, [load]);
 
-  async function connect(platform: 'INSTAGRAM' | 'TIKTOK') {
+  async function connect(platform: SocialPlatform) {
     if (!persona) return;
-    const handle = window.prompt(`Handle no ${platform} (ex.: @isabellasouz.a)`, '@isabellasouz.a');
+    const sugestao = '@' + persona.name.toLowerCase().replace(/\s+/g, '');
+    const handle = window.prompt(`Handle de ${persona.name} na ${platformMeta(platform).label}`, sugestao);
     if (!handle) return;
     try {
       await api.connectSocial({ personaId: persona.id, platform, handle });
@@ -48,24 +50,27 @@ export default function VisaoGeralPage() {
   }
 
   const connected = (p: string) => accounts.find((a) => a.platform === p);
+  const nConnected = accounts.filter((a) => a.status === 'CONNECTED').length;
 
   const cards = [
     { label: 'Na fila', value: overview ? String(overview.naFila) : '—', hint: 'aguardando aprovação' },
     { label: 'Agendados', value: overview ? String(overview.agendados) : '—', hint: 'próximas publicações' },
-    {
-      label: 'Contas conectadas',
-      value: `${accounts.filter((a) => a.status === 'CONNECTED').length}/2`,
-      hint: 'IG · TikTok',
-    },
+    { label: 'Redes conectadas', value: `${nConnected}/${PLATFORMS.length}`, hint: persona?.name ?? '' },
     { label: 'Papel', value: me?.role ?? '—', hint: me?.orgName ?? '' },
   ];
 
+  if (!persona) {
+    return (
+      <>
+        <PageHeader title="Visão Geral" subtitle="Selecione uma conta no topo." />
+        <p className="text-sm text-ink/50">Nenhuma persona ativa. Crie uma em Minhas Contas.</p>
+      </>
+    );
+  }
+
   return (
     <>
-      <PageHeader
-        title="Visão Geral"
-        subtitle={persona ? `Operando: ${persona.name}` : 'Status da operação.'}
-      />
+      <PageHeader title="Visão Geral" subtitle={`Operando: ${persona.name}`} />
 
       {error && (
         <div className="mb-4 rounded-md bg-red-50 px-4 py-2 text-sm text-red-700">{error}</div>
@@ -82,18 +87,26 @@ export default function VisaoGeralPage() {
       </div>
 
       <div className="mt-6 rounded-md border border-nude bg-white p-6 max-w-2xl">
-        <h2 className="text-sm font-semibold mb-3">Contas sociais (D1)</h2>
+        <h2 className="text-sm font-semibold mb-3">Redes de {persona.name}</h2>
         <div className="space-y-2">
-          {(['INSTAGRAM', 'TIKTOK'] as const).map((p) => {
-            const acc = connected(p);
+          {PLATFORMS.map((pl) => {
+            const acc = connected(pl.key);
             return (
               <div
-                key={p}
+                key={pl.key}
                 className="flex items-center justify-between rounded-md border border-nude-light px-3 py-2"
               >
-                <div className="text-sm">
-                  <span className="font-medium">{p === 'INSTAGRAM' ? 'Instagram' : 'TikTok'}</span>
-                  {acc && <span className="text-ink/50 ml-2">{acc.handle}</span>}
+                <div className="text-sm flex items-center gap-2">
+                  <span className="inline-flex h-6 w-6 items-center justify-center rounded bg-nude-light text-ink/70">
+                    {pl.icon}
+                  </span>
+                  <span className="font-medium">{pl.label}</span>
+                  {!pl.realReady && (
+                    <span className="text-[10px] rounded bg-nude-light px-1.5 py-0.5 text-ink/40">
+                      mock
+                    </span>
+                  )}
+                  {acc && <span className="text-ink/50 ml-1">{acc.handle}</span>}
                 </div>
                 {acc ? (
                   <span className="text-xs rounded bg-oliva/15 text-oliva-dark px-2 py-1">
@@ -101,9 +114,8 @@ export default function VisaoGeralPage() {
                   </span>
                 ) : (
                   <button
-                    onClick={() => connect(p)}
-                    disabled={!persona}
-                    className="text-xs rounded bg-terracota px-3 py-1 text-paper hover:bg-terracota-dark disabled:opacity-60"
+                    onClick={() => connect(pl.key)}
+                    className="text-xs rounded bg-terracota px-3 py-1 text-paper hover:bg-terracota-dark"
                   >
                     Conectar
                   </button>
@@ -113,8 +125,8 @@ export default function VisaoGeralPage() {
           })}
         </div>
         <p className="mt-3 text-[11px] text-ink/40">
-          MVP: conexão simulada (mock). O fluxo real via Ayrshare entra quando a chave existir —
-          mesma interface.
+          Conexão simulada (mock) no dev. O fluxo real via Ayrshare entra quando a chave existir —
+          mesma interface. Redes marcadas “mock” ligam o real numa fase seguinte.
         </p>
       </div>
     </>

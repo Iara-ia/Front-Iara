@@ -17,6 +17,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { KANBAN_COLUMNS, ContentStatus } from '@iara/contracts';
 import type { ContentItemDTO } from '@iara/contracts';
 import { api } from '@/lib/api';
+import { useActivePersona } from '@/components/PersonaProvider';
 
 const LABELS: Record<string, string> = {
   GERADO: 'Gerado',
@@ -65,6 +66,7 @@ function evaluateDrop(item: ContentItemDTO, target: string): GateResult {
 
 // Tela 4 — Fila de Aprovação (kanban com drag-and-drop). O ponto do HITL (<2h/semana). Dados REAIS.
 export default function FilaPage() {
+  const { active: persona } = useActivePersona();
   const [items, setItems] = useState<ContentItemDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -81,7 +83,7 @@ export default function FilaPage() {
     if (!opts?.silent) setLoading(true);
     setError(null);
     try {
-      setItems(await api.listContent());
+      setItems(await api.listContent({ personaId: persona?.id }));
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -91,7 +93,8 @@ export default function FilaPage() {
 
   useEffect(() => {
     load();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [persona?.id]);
 
   // Polling leve: enquanto houver itens em GERADO (worker ainda processando), refaz o fetch
   // a cada 3s para o operador ver os itens "subindo" de coluna. Para sozinho quando esvazia.

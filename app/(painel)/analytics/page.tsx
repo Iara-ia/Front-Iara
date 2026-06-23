@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { PageHeader } from '@/components/PageHeader';
 import { api } from '@/lib/api';
+import { useActivePersona } from '@/components/PersonaProvider';
 import type { AnalyticsOverviewDTO } from '@iara/contracts';
 
 type Overview = AnalyticsOverviewDTO & {
@@ -13,15 +14,17 @@ type Overview = AnalyticsOverviewDTO & {
 
 // Sprint 3 — Analytics. Métricas agregadas dos posts publicados (via InsightsProvider).
 export default function AnalyticsPage() {
+  const { active: persona } = useActivePersona();
   const [o, setO] = useState<Overview | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    setO(null);
     api
-      .analyticsOverview()
+      .analyticsOverview(persona?.id)
       .then(setO)
       .catch((e) => setError((e as Error).message));
-  }, []);
+  }, [persona?.id]);
 
   if (error) return <ErrWrap msg={error} />;
   if (!o)
