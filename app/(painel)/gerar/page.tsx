@@ -11,6 +11,7 @@ export default function GerarPage() {
   const { active: persona } = useActivePersona();
   const [count, setCount] = useState(3);
   const [type, setType] = useState<'POST' | 'REEL'>('POST');
+  const [smart, setSmart] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState<ContentItemDTO[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -21,7 +22,12 @@ export default function GerarPage() {
     setError(null);
     setResult(null);
     try {
-      const res = await api.generate({ personaId: persona.id, count, type });
+      const res = await api.generate({
+        personaId: persona.id,
+        count,
+        type,
+        strategy: smart ? 'smart' : 'balanced',
+      });
       setResult(res.items);
     } catch (e) {
       setError((e as Error).message);
@@ -72,6 +78,27 @@ export default function GerarPage() {
           onChange={(e) => setCount(Math.max(1, Math.min(7, Number(e.target.value))))}
           className="w-24 rounded-md border border-nude px-3 py-2"
         />
+
+        <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-md border border-nude bg-nude-light/40 p-3">
+          <input
+            type="checkbox"
+            checked={smart}
+            onChange={(e) => setSmart(e.target.checked)}
+            className="mt-0.5 h-4 w-4 accent-terracota"
+          />
+          <span className="text-sm">
+            <span className="font-medium">🧠 Priorizar o que mais engaja</span>
+            <span className="block text-xs text-ink/50">
+              A Isabella aprende com o público: pondera o mix pelos temas que mais engajaram (com um
+              pouco de variação pra não virar bolha). Veja o ranking em{' '}
+              <a href="/analytics" className="underline">
+                Analytics
+              </a>
+              .
+            </span>
+          </span>
+        </label>
+
         <button
           onClick={gerar}
           disabled={generating || !persona}

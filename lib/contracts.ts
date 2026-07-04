@@ -176,6 +176,38 @@ export interface AnalyticsOverviewDTO {
   }>;
 }
 
+// ---- Analytics: perfil da audiência (demografia) ----
+export interface DemographicSlice {
+  label: string;
+  value: number;
+}
+export interface AudienceDemographics {
+  gender: DemographicSlice[];
+  ageRanges: DemographicSlice[];
+  topCities: DemographicSlice[];
+  topCountries: DemographicSlice[];
+  followerGrowth: Array<{ date: string; followers: number }>;
+  source: 'mock' | 'meta' | 'unavailable';
+  note?: string;
+}
+
+// ---- Analytics: loop de aprendizado (desempenho por pilar) ----
+export interface PilarPerformance {
+  pilar: string;
+  posts: number;
+  avgReach: number;
+  avgEngagement: number;
+  engagementRate: number;
+  share: number;
+}
+export interface LearningInsightsDTO {
+  rankings: PilarPerformance[];
+  top: string[];
+  suggestedMix: string[];
+  sampleSize: number;
+  note?: string;
+}
+
 export interface MeResponse {
   userId: string;
   orgId: string;
@@ -248,6 +280,7 @@ export interface GenerateContentInput {
   pilares?: string[];
   type?: 'POST' | 'REEL'; // POST (default) | REEL (vídeo+voz)
   affiliateLinks?: AffiliateLink[];
+  strategy?: 'balanced' | 'smart'; // 'smart' prioriza o que mais engajou (loop de aprendizado)
 }
 
 export interface PatchContentInput {

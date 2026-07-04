@@ -7,6 +7,8 @@ import type {
   MeResponse,
   NicheCatalog,
   AnalyticsOverviewDTO,
+  AudienceDemographics,
+  LearningInsightsDTO,
   InteractionDTO,
   ReceiveInteractionInput,
   BillingDTO,
@@ -113,4 +115,12 @@ export const api = {
     apiFetch<
       AnalyticsOverviewDTO & { naFila: number; agendados: number; contasConectadas: number }
     >(`/analytics/overview${personaId ? `?personaId=${personaId}` : ''}`),
+  analyticsAudience: (personaId?: string) =>
+    apiFetch<AudienceDemographics>(
+      `/analytics/audience${personaId ? `?personaId=${personaId}` : ''}`,
+    ),
+  analyticsLearning: (personaId?: string) =>
+    apiFetch<LearningInsightsDTO>(
+      `/analytics/learning${personaId ? `?personaId=${personaId}` : ''}`,
+    ),
 };
